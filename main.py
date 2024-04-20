@@ -1,7 +1,8 @@
 import torch
 from transformers import BitsAndBytesConfig
-from langchain import HuggingFacePipeline
-from langchain import PromptTemplate, LLMChain
+from langchain_community.llms import HuggingFacePipeline
+from langchain_core.prompts import PromptTemplate
+from langchain import LLMChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 # the configuration for quantization, or how to reduce weights in a way they
@@ -15,6 +16,7 @@ quantization_config = BitsAndBytesConfig(
 #model_id = "mistralai/Mistral-7B-Instruct-v0.1"
 model_id = "lmlab/lmlab-mistral-1b-untrained"
 
+print("getting model from its ID")
 model_4bit = AutoModelForCausalLM.from_pretrained( model_id, device_map="auto",quantization_config=quantization_config, )
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
@@ -32,6 +34,7 @@ pipeline = pipeline(
         pad_token_id=tokenizer.eos_token_id,
 )
 
+print("now creating pipeline")
 # we create a huggingface llm pipeline
 llm = HuggingFacePipeline(pipeline=pipeline)
 
@@ -51,5 +54,7 @@ Recently, the metaverse has been making strides towards better human/AI interact
 """
 prompt = PromptTemplate(template=template, input_variables=["question","context"])
 llm_chain = LLMChain(prompt=prompt, llm=llm)
-response = llm_chain.run({"question":question_p,"context":context_p})
+response = llm_chain.invoke({"question":question_p,"context":context_p})
 response
+
+print(response)
