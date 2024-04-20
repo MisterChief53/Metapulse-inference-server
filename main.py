@@ -2,8 +2,11 @@ import torch
 from transformers import BitsAndBytesConfig
 from langchain_community.llms import HuggingFacePipeline
 from langchain_core.prompts import PromptTemplate
-from langchain import LLMChain
+from langchain.chains import LLMChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from huggingface_hub import login
+
+login()
 
 # the configuration for quantization, or how to reduce weights in a way they
 # fit on our gpu

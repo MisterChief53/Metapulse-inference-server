@@ -3,9 +3,6 @@ services:
   metapulse-inference-server:
     build: .
     image: metapulse-inference-image
-    mem_limit: 4g
-    mem_reservation: 256m
-    memswap_limit: 10g
     volumes:
       - .:/workspace:cached
     deploy:
