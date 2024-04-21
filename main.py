@@ -5,8 +5,10 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from huggingface_hub import login
+from chatbot import CustomChatModelAdvanced
+from langchain_core.messages import AIMessage, HumanMessage
 
-login()
+# login()
 
 # the configuration for quantization, or how to reduce weights in a way they
 # fit on our gpu
@@ -16,7 +18,7 @@ quantization_config = BitsAndBytesConfig(
     bnb_4bit_quant_type="nf4",
     bnb_4bit_use_double_quant=True,
 )
-#model_id = "mistralai/Mistral-7B-Instruct-v0.1"
+# model_id = "mistralai/Mistral-7B-Instruct-v0.1"
 model_id = "lmlab/lmlab-mistral-1b-untrained"
 
 print("getting model from its ID")
@@ -58,6 +60,17 @@ Recently, the metaverse has been making strides towards better human/AI interact
 prompt = PromptTemplate(template=template, input_variables=["question","context"])
 llm_chain = LLMChain(prompt=prompt, llm=llm)
 response = llm_chain.invoke({"question":question_p,"context":context_p})
-response
+
+print(response)
+
+advanced_model = CustomChatModelAdvanced(n=3, model_name="my_custom_model", llm=llm_chain)
+
+response = advanced_model.invoke(
+    [
+        HumanMessage(content="hello!"),
+        AIMessage(content="Hi there human!"),
+        HumanMessage(content="Meow!, Do something!"),
+    ]
+)
 
 print(response)
