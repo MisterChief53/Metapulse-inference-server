@@ -18,25 +18,29 @@ quantization_config = BitsAndBytesConfig(
     bnb_4bit_quant_type="nf4",
     bnb_4bit_use_double_quant=True,
 )
-# model_id = "mistralai/Mistral-7B-Instruct-v0.1"
-model_id = "lmlab/lmlab-mistral-1b-untrained"
+
+# model_id = "lmlab/lmlab-mistral-1b-untrained"
+# model_id = "models/Mistral-7B-Instruct-v0.1"
+model_id = "models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
 
 print("getting model from its ID")
-model_4bit = AutoModelForCausalLM.from_pretrained( model_id, device_map="auto",quantization_config=quantization_config, )
+model_4bit = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto",
+                                                  quantization_config=quantization_config,
+                                                  local_files_only=True)
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 
 pipeline = pipeline(
-        "text-generation",
-        model=model_4bit,
-        tokenizer=tokenizer,
-        use_cache=True,
-        device_map="auto",
-        max_length=500,
-        do_sample=True,
-        top_k=5,
-        num_return_sequences=1,
-        eos_token_id=tokenizer.eos_token_id,
-        pad_token_id=tokenizer.eos_token_id,
+    "text-generation",
+    model=model_4bit,
+    tokenizer=tokenizer,
+    use_cache=True,
+    device_map="auto",
+    max_length=500,
+    do_sample=True,
+    top_k=5,
+    num_return_sequences=1,
+    eos_token_id=tokenizer.eos_token_id,
+    pad_token_id=tokenizer.eos_token_id,
 )
 
 print("now creating pipeline")
@@ -57,9 +61,9 @@ question_p = """What would you like to sell today?"""
 context_p = """ On August 10 said that its arm JSW Neo Energy has agreed to buy a portfolio of 1753 mega watt renewable energy generation capacity from Mytrah Energy India Pvt Ltd for Rs 10,530 crore.
 Recently, the metaverse has been making strides towards better human/AI interaction and relations.
 """
-prompt = PromptTemplate(template=template, input_variables=["question","context"])
+prompt = PromptTemplate(template=template, input_variables=["question", "context"])
 llm_chain = LLMChain(prompt=prompt, llm=llm)
-response = llm_chain.invoke({"question":question_p,"context":context_p})
+response = llm_chain.invoke({"question": question_p, "context": context_p})
 
 print(response)
 
