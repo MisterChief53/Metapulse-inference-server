@@ -24,8 +24,8 @@ quantization_config = BitsAndBytesConfig(
 )
 
 # model_id = "lmlab/lmlab-mistral-1b-untrained"
-# model_id = "../models/Mistral-7B-Instruct-v0.1"
-model_id = "../models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
+model_id = "../models/Mistral-7B-Instruct-v0.1"
+# model_id = "../models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
 
 print("getting model from its ID")
 model_4bit = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto",
