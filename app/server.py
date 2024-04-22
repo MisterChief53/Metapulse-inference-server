@@ -8,7 +8,11 @@ from huggingface_hub import login
 from chatbot import CustomChatModelAdvanced
 from langchain_core.messages import AIMessage, HumanMessage
 
-# login()
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+from langserve import add_routes
+from langchain.prompts import ChatPromptTemplate
+
 
 # the configuration for quantization, or how to reduce weights in a way they
 # fit on our gpu
@@ -20,8 +24,8 @@ quantization_config = BitsAndBytesConfig(
 )
 
 # model_id = "lmlab/lmlab-mistral-1b-untrained"
-# model_id = "models/Mistral-7B-Instruct-v0.1"
-model_id = "models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
+# model_id = "../models/Mistral-7B-Instruct-v0.1"
+model_id = "../models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
 
 print("getting model from its ID")
 model_4bit = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto",
@@ -52,8 +56,9 @@ template = """<s>[INST] You are a helpful, interesting bartender with a backgrou
 You are in a metaverse where you can't actually sell anything, but you still perform engaging
 conversations. Answer the questions maybe referencing
 the context if deem it necessary for what is asked, although you do not have to reference
-it always:
+it always. Now, I will show you your message history so far (the first message was made by a human), Just generate single brief reply Do not add "You".
 {context}
+The human's next message:
 {question} [/INST] </s>
 """
 
@@ -63,9 +68,9 @@ Recently, the metaverse has been making strides towards better human/AI interact
 """
 prompt = PromptTemplate(template=template, input_variables=["question", "context"])
 llm_chain = LLMChain(prompt=prompt, llm=llm)
-response = llm_chain.invoke({"question": question_p, "context": context_p})
-
-print(response)
+# response = llm_chain.invoke({"question": question_p, "context": context_p})
+#
+# print(response)
 
 advanced_model = CustomChatModelAdvanced(n=3, model_name="my_custom_model", llm=llm_chain)
 
@@ -73,8 +78,44 @@ response = advanced_model.invoke(
     [
         HumanMessage(content="hello!"),
         AIMessage(content="Hi there human!"),
-        HumanMessage(content="Meow!, Do something!"),
+        HumanMessage(content="How was your day?"),
     ]
 )
 
-print(response)
+response = response.content
+
+# Find the index of the separator
+separator_index = response.find("</s>")
+
+# If the separator is found, extract the text after it
+if separator_index != -1:
+  text_after_separator = response[separator_index + len("</s>"):]
+  print(text_after_separator)
+else:
+  print("Separator not found")
+
+
+
+app = FastAPI(
+    title="Inference Server",
+    version="1.0",
+    description="An api to interact with our LLM"
+)
+
+
+@app.get("/")
+async def redirect_root_to_docs():
+    return RedirectResponse("/docs")
+
+prompt = ChatPromptTemplate.from_template("User's message: {message}")
+# Edit this to add the chain you want to add
+add_routes(
+    app,
+    prompt | advanced_model,
+    path="/chat"
+)
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8080)

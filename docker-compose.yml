@@ -3,6 +3,8 @@ services:
   metapulse-inference-server:
     build: .
     image: metapulse-inference-image
+    ports:
+      - 7070:8080
     volumes:
       - .:/workspace:cached
     deploy:

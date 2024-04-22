@@ -60,13 +60,31 @@ class CustomChatModelAdvanced(BaseChatModel):
         # Replace this with actual logic to generate a response from a list
         # of messages.
         last_message = messages[-1]
-        past_messages = []
+        past_messages = ""
+        ai_message = False
         for i in range(len(messages) - 1):
-            past_messages += messages[i].content[:]
+            if ai_message:
+                past_messages += "You: "
+                ai_message = False
+            else:
+                past_messages += "Human: "
+                ai_message = True
+
+            past_messages += messages[i].content[:] + '\n'
+        print(past_messages)
         llm_response = self.llm.invoke({"question": last_message.content, "context": past_messages})
 
+        # Find the index of the separator
+        separator_index = llm_response["text"].find("</s>")
+
+        text_after_separator = ""
+        # If the separator is found, extract the text after it
+        if separator_index != -1:
+            text_after_separator = llm_response["text"][separator_index + len("</s>"):]
+            print(text_after_separator)
+
         message = AIMessage(
-            content=llm_response["text"],
+            content=text_after_separator,
             additional_kwargs={}, # we don't need another payload
             response_metadata={
                 "time in seconds:": 3,
@@ -76,65 +94,52 @@ class CustomChatModelAdvanced(BaseChatModel):
         generation = ChatGeneration(message=message)
         return ChatResult(generations=[generation])
 
-        # tokens = last_message.content[: self.n]
-        # message = AIMessage(
-        #     content=tokens,
-        #     additional_kwargs={},  # Used to add additional payload (e.g., function calling request)
-        #     response_metadata={  # Use for response metadata
-        #         "time_in_seconds": 3,
-        #     },
-        # )
-        #
-        #
-        # generation = ChatGeneration(message=message)
-        # return ChatResult(generations=[generation])
-
-    def _stream(
-            self,
-            messages: List[BaseMessage],
-            stop: Optional[List[str]] = None,
-            run_manager: Optional[CallbackManagerForLLMRun] = None,
-            **kwargs: Any,
-    ) -> Iterator[ChatGenerationChunk]:
-        """Stream the output of the model.
-
-        This method should be implemented if the model can generate output
-        in a streaming fashion. If the model does not support streaming,
-        do not implement it. In that case streaming requests will be automatically
-        handled by the _generate method.
-
-        Args:
-            messages: the prompt composed of a list of messages.
-            stop: a list of strings on which the model should stop generating.
-                  If generation stops due to a stop token, the stop token itself
-                  SHOULD BE INCLUDED as part of the output. This is not enforced
-                  across models right now, but it's a good practice to follow since
-                  it makes it much easier to parse the output of the model
-                  downstream and understand why generation stopped.
-            run_manager: A run manager with callbacks for the LLM.
-        """
-        last_message = messages[-1]
-        tokens = last_message.content[: self.n]
-
-        for token in tokens:
-            chunk = ChatGenerationChunk(message=AIMessageChunk(content=token))
-
-            if run_manager:
-                # This is optional in newer versions of LangChain
-                # The on_llm_new_token will be called automatically
-                run_manager.on_llm_new_token(token, chunk=chunk)
-
-            yield chunk
-
-        # Let's add some other information (e.g., response metadata)
-        chunk = ChatGenerationChunk(
-            message=AIMessageChunk(content="", response_metadata={"time_in_sec": 3})
-        )
-        if run_manager:
-            # This is optional in newer versions of LangChain
-            # The on_llm_new_token will be called automatically
-            run_manager.on_llm_new_token(token, chunk=chunk)
-        yield chunk
+    # def _stream(
+    #         self,
+    #         messages: List[BaseMessage],
+    #         stop: Optional[List[str]] = None,
+    #         run_manager: Optional[CallbackManagerForLLMRun] = None,
+    #         **kwargs: Any,
+    # ) -> Iterator[ChatGenerationChunk]:
+    #     """Stream the output of the model.
+    #
+    #     This method should be implemented if the model can generate output
+    #     in a streaming fashion. If the model does not support streaming,
+    #     do not implement it. In that case streaming requests will be automatically
+    #     handled by the _generate method.
+    #
+    #     Args:
+    #         messages: the prompt composed of a list of messages.
+    #         stop: a list of strings on which the model should stop generating.
+    #               If generation stops due to a stop token, the stop token itself
+    #               SHOULD BE INCLUDED as part of the output. This is not enforced
+    #               across models right now, but it's a good practice to follow since
+    #               it makes it much easier to parse the output of the model
+    #               downstream and understand why generation stopped.
+    #         run_manager: A run manager with callbacks for the LLM.
+    #     """
+    #     last_message = messages[-1]
+    #     tokens = last_message.content[: self.n]
+    #
+    #     for token in tokens:
+    #         chunk = ChatGenerationChunk(message=AIMessageChunk(content=token))
+    #
+    #         if run_manager:
+    #             # This is optional in newer versions of LangChain
+    #             # The on_llm_new_token will be called automatically
+    #             run_manager.on_llm_new_token(token, chunk=chunk)
+    #
+    #         yield chunk
+    #
+    #     # Let's add some other information (e.g., response metadata)
+    #     chunk = ChatGenerationChunk(
+    #         message=AIMessageChunk(content="", response_metadata={"time_in_sec": 3})
+    #     )
+    #     if run_manager:
+    #         # This is optional in newer versions of LangChain
+    #         # The on_llm_new_token will be called automatically
+    #         run_manager.on_llm_new_token(token, chunk=chunk)
+    #     yield chunk
 
     @property
     def _llm_type(self) -> str:
