@@ -14,4 +14,4 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    command: /bin/bash -c "cd /workspace && python ./app/server.py"
+    command: /bin/bash -c "while true; do sleep 3600; done"
