@@ -1,4 +1,5 @@
 from typing import Any, Dict, Iterator, List, Optional
+import re
 
 from langchain_core.callbacks import (
     CallbackManagerForLLMRun,
@@ -81,6 +82,13 @@ class CustomChatModelAdvanced(BaseChatModel):
         # If the separator is found, extract the text after it
         if separator_index != -1:
             text_after_separator = llm_response["text"][separator_index + len("</s>"):]
+            # Truncate if the length is greater than 254 characters
+            if len(text_after_separator) > 254:
+                text_after_separator = text_after_separator[:254]
+            # Remove newline characters using string replace
+            text_after_separator = text_after_separator.replace("\n", "")
+            text_after_separator = "AI: " + text_after_separator
+            text_after_separator = re.sub(r'[^\x00-\x7F]+', '', text_after_separator)
             print(text_after_separator)
 
         message = AIMessage(
