@@ -68,9 +68,6 @@ Recently, the metaverse has been making strides towards better human/AI interact
 """
 prompt = PromptTemplate(template=template, input_variables=["question", "context"])
 llm_chain = LLMChain(prompt=prompt, llm=llm)
-# response = llm_chain.invoke({"question": question_p, "context": context_p})
-#
-# print(response)
 
 advanced_model = CustomChatModelAdvanced(n=3, model_name="my_custom_model", llm=llm_chain)
 
@@ -102,7 +99,9 @@ app = FastAPI(
     description="An api to interact with our LLM"
 )
 
-
+"""
+This is a simple FastAPI server that serves the LLM model. It has a single endpoint
+"""
 @app.get("/")
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")

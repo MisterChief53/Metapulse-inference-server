@@ -44,8 +44,8 @@ class CustomChatModelAdvanced(BaseChatModel):
     ) -> ChatResult:
         """Override the _generate method to implement the chat model logic.
 
-        This can be a call to an API, a call to a local model, or any other
-        implementation that generates a response to the input prompt.
+        This receives a singular prompt and runs the model on that user message
+        + the prompt to generate a response.
 
         Args:
             messages: the prompt composed of a list of messages.
