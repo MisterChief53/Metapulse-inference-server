@@ -7,11 +7,11 @@ services:
       - 7070:8080
     volumes:
       - .:/workspace:cached
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]
     command: /bin/bash -c "cd /workspace && python ./app/server.py"
