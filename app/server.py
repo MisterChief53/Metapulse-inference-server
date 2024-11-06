@@ -1,9 +1,12 @@
 import torch
-from transformers import BitsAndBytesConfig
+# from transformers import BitsAndBytesConfig
+
 from langchain_community.llms import HuggingFacePipeline
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import LLMChain
+print("before quantization config")
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+
 from huggingface_hub import login
 from chatbot import CustomChatModelAdvanced
 from langchain_core.messages import AIMessage, HumanMessage
@@ -13,23 +16,25 @@ from fastapi.responses import RedirectResponse
 from langserve import add_routes
 from langchain.prompts import ChatPromptTemplate
 
-
 # the configuration for quantization, or how to reduce weights in a way they
 # fit on our gpu
-quantization_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.float16,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-)
+# quantization_config = BitsAndBytesConfig(
+#     load_in_4bit=True,
+#     bnb_4bit_compute_dtype=torch.float16,
+#     bnb_4bit_quant_type="nf4",
+#     bnb_4bit_use_double_quant=True,
+# )
 
 # model_id = "lmlab/lmlab-mistral-1b-untrained"
 # model_id = "../models/Mistral-7B-Instruct-v0.1"
 model_id = "/workspace/models/LocutusqueXFelladrin-TinyMistral248M-Instruct/"
 
 print("getting model from its ID")
+# model_4bit = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto",
+#                                                   quantization_config=quantization_config,
+#                                                   local_files_only=True)
+
 model_4bit = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto",
-                                                  quantization_config=quantization_config,
                                                   local_files_only=True)
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 

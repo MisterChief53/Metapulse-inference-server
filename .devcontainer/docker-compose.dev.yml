@@ -12,6 +12,6 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]
     command: /bin/bash -c "while true; do sleep 3600; done"
